@@ -169,7 +169,7 @@ def run():
     print('Query image ==========================================')
     show_img(sample)
     y = input("Mau ditampilin berapa yang mirip : ")
-    names, match = ma.match(sample, topn=int(y), user_input)
+    names, match = ma.match(sample, int(y), user_input)
     print('Result images ========================================')
     for i in range(int(y)):
         # we got cosine distance, less cosine distance between vectors
