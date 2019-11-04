@@ -62,7 +62,7 @@ class Matcher(object):
         for k, v in self.data.items():
             self.names.append(k)
             self.matrix.append(v)
-        self.matrix = np.array(self.matrix)
+        self.matrix = np.array(self.matrix) # Image database
         self.names = np.array(self.names)
 
     def cos_cdist(self, vector):
@@ -70,12 +70,51 @@ class Matcher(object):
         v = vector.reshape(1, -1)
         return scipy.spatial.distance.cdist(self.matrix, v, 'cosine').reshape(-1)
 
-    def match(self, image_path, topn=5):
+    def euclidianDistance(self, vector):
+        # getting euclidean distance between search image and images database
+        v = vector.reshape(1,-1) # Search Image
+
+        distance = np.empty([len(v), len(self.matrix)])
+
+        for i in range(0,len(v)):
+            for j in range(0, len(self.matrix)):
+                distance[i][j] = 0
+                for k in range(0, 2048):
+                    distance[i][j] += (v[i][k] - self.matrix[j][k])**2
+                distance[i][j] = np.sqrt(distance[i][j])
+
+        return distance.reshape(-1)
+
+    def cosineSimilarity(self, vector):
+        v = vector.reshape(1,-1) # Search Image
+
+        distance = np.empty([len(v), len(self.matrix)])
+        for i in range(0,len(v)):
+            for j in range(0, len(self.matrix)):
+                distance[i][j] = (np.dot(v[i], self.matrix[j]) / (np.linalg.norm(v[i]) * np.linalg.norm(self.matrix[j])))
+                
+
+        return distance.reshape(-1)
+
+        
+            
+
+    
+    def match(self, image_path, topn, method):
         features = extract_features(image_path)
-        img_distances = self.cos_cdist(features)
-        # getting top 5 records
-        nearest_ids = np.argsort(img_distances)[:topn].tolist()
-        nearest_img_paths = self.names[nearest_ids].tolist()
+        if (method == '1'):
+            img_distances = self.euclidianDistance(features)
+            
+            nearest_ids = np.argsort(img_distances)[:topn].tolist()
+            nearest_img_paths = self.names[nearest_ids].tolist()
+        elif (method == '2'):
+            img_distances = self.cosineSimilarity(features)
+            
+            nearest_ids = np.argsort(img_distances)[::-1][:topn].tolist()
+            nearest_img_paths = self.names[nearest_ids].tolist()
+        else :
+            print("Salah input")
+
 
         return nearest_img_paths, img_distances[nearest_ids].tolist()
 
@@ -93,16 +132,18 @@ def run():
     batch_extractor(images_path)
 
     ma = Matcher('features.pck')
+
+    user_input = input("1. Euclidean\n2. Cosine\n")
     
     for s in sample:
         print('Query image ==========================================')
         show_img(s)
-        names, match = ma.match(s, topn=3)
+        names, match = ma.match(s, 3, user_input)
         print('Result images ========================================')
         for i in range(3):
             # we got cosine distance, less cosine distance between vectors
             # more they similar, thus we subtruct it from 1 to get match value
-            print('Match %s' % (1-match[i]))
+            print('Match %s' % (match[i]))
             show_img(os.path.join(images_path, names[i]))
 
 run()
