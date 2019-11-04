@@ -38,8 +38,20 @@ def extract_features(image_path, vector_size=32):
 
     return dsc
 
+def batch_extractor_uji(images_path, pickled_db_path="features_uji.pck"):
+    files = [os.path.join(images_path, p) for p in sorted(os.listdir(images_path))]
 
-def batch_extractor(images_path, pickled_db_path="features.pck"):
+    result = {}
+    for f in files:
+        print('Extracting features from image %s' % f)
+        name = f.split('/')[-1].lower()
+        result[name] = extract_features(f)
+    
+    # saving all our feature vectors in pickled file
+    with open(pickled_db_path, 'wb') as fp:
+        pickle.dump(result, fp)
+
+def batch_extractor_referensi(images_path, pickled_db_path="features_referensi.pck"):
     files = [os.path.join(images_path, p) for p in sorted(os.listdir(images_path))]
 
     result = {}
@@ -54,7 +66,7 @@ def batch_extractor(images_path, pickled_db_path="features.pck"):
 
 class Matcher(object):
 
-    def __init__(self, pickled_db_path="features.pck"):
+    def __init__(self, pickled_db_path="features_referensi.pck"):
         with open(pickled_db_path, 'rb') as fp:
             self.data = pickle.load(fp)
         self.names = []
@@ -85,24 +97,43 @@ def show_img(path):
     plt.show()
     
 def run():
-    images_path = 'PINS/pins_Aaron Paul_2/'
+    # ini data dari data uji
+    images_path = 'pins-face-recognition/Data Uji/'
     files = [os.path.join(images_path, p) for p in sorted(os.listdir(images_path))]
-    # getting 3 random images 
-    sample = random.sample(files, 3)
-    
-    batch_extractor(images_path)
 
-    ma = Matcher('features.pck')
+    for i in range(len(files)):
+        num = 1+i
+        print (num, ".", files[i])
+
+    x = input("pilih nomer berapa : ")
+    sample = files[int(x)-1] 
+    # misalnya : pins-face-recognition/Data Uji/Jesse Eisenberg0.jpg
+
+    # kalo misalnya blm ada file .pck untuk data uji
+    extracted = os.path.isfile('./features_uji.pck')
+    if not(extracted):
+        batch_extractor_uji(images_path)
+
+    # ini data dari referensi
+    images_path = 'pins-face-recognition/Data Referensi/'
+
+    # kalo misalnya blm ada file .pck untuk data referensi
+    extracted = os.path.isfile('./features_referensi.pck')
+    if not(extracted):
+        batch_extractor_referensi(images_path)
+
+    ma = Matcher('features_referensi.pck')
     
-    for s in sample:
-        print('Query image ==========================================')
-        show_img(s)
-        names, match = ma.match(s, topn=3)
-        print('Result images ========================================')
-        for i in range(3):
-            # we got cosine distance, less cosine distance between vectors
-            # more they similar, thus we subtruct it from 1 to get match value
-            print('Match %s' % (1-match[i]))
-            show_img(os.path.join(images_path, names[i]))
+    
+    print('Query image ==========================================')
+    show_img(sample)
+    x = input("Mau ditampilin berapa yang mirip : ")
+    names, match = ma.match(sample, topn=int(x))
+    print('Result images ========================================')
+    for i in range(int(x)):
+        # we got cosine distance, less cosine distance between vectors
+        # more they similar, thus we subtruct it from 1 to get match value
+        print('Match %s' % (1-match[i]))
+        show_img(os.path.join(images_path, names[i]))
 
 run()
