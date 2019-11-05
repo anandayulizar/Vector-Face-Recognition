@@ -6,17 +6,31 @@ import tkinter.filedialog
 from imgSearch1 import *
 
 #####################################################################################
-def run(sample, user_input, y, match_rate, matchtemp):
+matchtemp = float(0)
+matchrate = float(0)
+filename = ''
+i = 0
+y = 1
+
+def run():
     # ini data dari data uji
     # images_path = 'pins-face-recognition/Data Uji/'
     # files = [os.path.join(images_path, p) for p in sorted(os.listdir(images_path))]
-    
     # for i in range(len(files)):
     #     num = 1+i
     #     print (num, ".", files[i])
-
+    global filename
+    global var
+    global NumPhoto
+    global matchtemp
+    global y
+    # global EFinished
+    # global EQueue
+    # global EMatching
+    # global EMatchRate
+    # global EHasilAkhir
     # x = input("pilih nomer berapa : ")
-    # sample = files[int(x)-1] 
+    sample = filename
     # # misalnya : pins-face-recognition/Data Uji/Jesse Eisenberg0.jpg
 
     # # kalo misalnya blm ada file .pck untuk data uji
@@ -35,21 +49,47 @@ def run(sample, user_input, y, match_rate, matchtemp):
     ma = Matcher('features_referensi.pck')
     
     print('Query image ==========================================')
-    show_img(sample)
-    y = input("Mau ditampilin berapa yang mirip : ")
-    names, match = ma.match(sample, int(y), user_input)
+    print(filename)
+    print(var.get())
+    op = var.get()
+    print(NumPhoto.get())
+    names, match = ma.match(sample, y, op)
     print('Result images ========================================')
     match_rate = float(0);
     sum = float(0);
-    for i in range(int(y)):
+    i = 0;
+    for i in range(y):
         # we got cosine distance, less cosine distance between vectors
         # more they similar, thus we subtruct it from 1 to get match value
         print('Match %s' % (match[i]))
-        matchtemp = match[i]
         sum = sum + match[i]
         match_rate = sum / (i+1)
-        show_img(os.path.join(images_path, names[i]))
+        print(os.path.join(images_path, names[i]))
+        changeDataRef(os.path.join(images_path, names[i]))
+        # show_img(os.path.join(images_path, names[i]))
+    EFinished.delete(0,'end')
+    EQueue.delete(0,'end')
+    EHasilAkhir.delete(0,'end')
+    EMatchRate.delete(0,'end')
+    EMatching.delete(0,'end')
+    EFinished.insert(0,y)
+    EQueue.insert(0,NumPhoto.get()-y)
+    EMatching.insert(0,match[i])
+    EMatchRate.insert(0,match_rate)
+    EHasilAkhir.insert(0,'Mirip')
 #############################################################################
+def NextImage():
+
+    global y
+    if (y < NumPhoto.get()) :
+        y = y+1
+        run()
+
+def start():
+    global y
+    y = 1
+    run()
+
 
 root = tkinter.Tk()
 root.geometry('1024x768')
@@ -57,18 +97,19 @@ root.title("IF2123 - Aljabar Linear dan Geometri - Face Recognition")
 #root.iconbitmap("C:/Users/micha/Documents/GitHub/algeosantuy/itb.ico")
 
 # INISIALISASI FOTO AWAL
-photo = ImageTk.PhotoImage(file="C:/Users/micha/Documents/GitHub/algeosantuy/pins-face-recognition/Data Referensi/Aaron Paul5_246.jpg")
-photo1 = ImageTk.PhotoImage(file="pins-face-recognition/Data Referensi/Aaron Paul2_293.jpg")
+photo = ImageTk.PhotoImage(file="EmptyPhoto.jpg")
+photo1 = ImageTk.PhotoImage(file="EmptyPhoto.jpg")
 
 # GANTI FOTO DALAM GUI
 def changeDataUji(filename):
-    print(filename)
-    phototemp = ImageTk.PhotoImage(file=filename)
-    LImage1 = Label(root, image=phototemp)
+    global photo
+    photo = ImageTk.PhotoImage(file=filename)
+    LImage1 = Label(root, image=photo)
     LImage1.place(x=150, y=110, in_=root)
 
-def changeDataRef(filename):
-    photo1 = ImageTk.PhotoImage(file=filename)
+def changeDataRef(namafile):
+    global photo1
+    photo1 = ImageTk.PhotoImage(file=namafile)
     LImage2 = Label(root, image=photo1)
     LImage2.place(x=600, y=110, in_=root)
 
@@ -108,15 +149,18 @@ L6.place(x=750, y=60, in_=root)
 L7.place(x=750, y=80, in_=root)
 
 def resetSetting():
+    global y
     EFinished.delete(0,'end')
     EQueue.delete(0,'end')
     EHasilAkhir.delete(0,'end')
     EMatchRate.delete(0,'end')
     EMatching.delete(0,'end')
     scaleNumPhoto.set(1)
-    var = 0
-    NumPhoto = 0
+    y = 1
     pathlabel.config(text='')
+    changeDataRef('EmptyPhoto.jpg')
+    changeDataUji('EmptyPhoto.jpg')
+    
 
 def sel():
     selection = "Kamu memilih opsi perhitungan ke-" + str(var.get())
@@ -148,13 +192,11 @@ LName.place(x=430, y=430, in_=root)
 # EName.place(x=430, y=460, in_=root)
 
 def browsefunc():
+    global filename
     filename = tkinter.filedialog.askopenfilename()
-    photo2 = ImageTk.PhotoImage(file="C:/Users/micha/Documents/GitHub/algeosantuy/pins-face-recognition/Data Referensi/Aaron Paul5_246.jpg")
-    LImage3 = Label(root, image=photo2)
-    LImage3.place(x=100, y=600, in_=root)
-    #changeDataUji(filename)
-    filename = filename.split("/")
-    pathlabel.config(text=filename[-1])
+    changeDataUji(filename)
+    imgName = filename.split("/")
+    pathlabel.config(text=imgName[-1])
 
 browsebutton = Button(root, text="Browse", command=browsefunc)
 browsebutton['font'] = helv14
@@ -168,7 +210,7 @@ LNumPhoto = Label(root, text="Jumlah foto")
 LNumPhoto['font'] = helv14
 LNumPhoto.place(x=430, y=520, in_=root)
 
-NumPhoto = DoubleVar()
+NumPhoto = IntVar() 
 scaleNumPhoto = Scale( root, variable = NumPhoto, orient=HORIZONTAL, from_=1, to_=10, length = 200)
 scaleNumPhoto['font'] = helv12
 scaleNumPhoto.place(x=430, y=550, in_=root)
@@ -226,7 +268,7 @@ def callback():
     else:
         tkinter.messagebox.showinfo('No', 'Quit has been cancelled')
 
-MatchButton = tkinter.Button(root, height = 2, width = 10, bg='green yellow', text ="Match Up!", command = helloCallBack)
+MatchButton = tkinter.Button(root, height = 2, width = 10, bg='green yellow', text ="Match Up!", command = start)
 MatchButton['font'] = helv12
 MatchButton.place(x=480, y=250, in_=root)
 
@@ -237,6 +279,14 @@ ResetButton.place(x=480, y=180, in_=root)
 QuitButton = tkinter.Button(root, height = 2, width = 10, bg='red', text ="Quit", command = callback)
 QuitButton['font'] = helv12
 QuitButton.place(x=480, y=320, in_=root)
+
+def increment():
+    global i
+    i = i + 1
+
+NextButton = tkinter.Button(root, height = 2, width = 10, bg='blue', text ="Next", command = NextImage)
+NextButton['font'] = helv12
+NextButton.place(x=480, y=110, in_=root)
 
 # Button(text='Quit', command=callback).pack(fill=X)
 # Button(text='Answer', command=answer).pack(fill=X)

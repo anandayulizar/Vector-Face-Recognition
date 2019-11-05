@@ -111,12 +111,12 @@ class Matcher(object):
     
     def match(self, image_path, topn, method):
         features = extract_features(image_path)
-        if (method == '1'):
+        if (method == 1):
             img_distances = self.euclidianDistance(features)
             
             nearest_ids = np.argsort(img_distances)[:topn].tolist()
             nearest_img_paths = self.names[nearest_ids].tolist()
-        elif (method == '2'):
+        elif (method == 2):
             img_distances = self.cosineSimilarity(features)
             
             nearest_ids = np.argsort(img_distances)[::-1][:topn].tolist()
@@ -131,6 +131,3 @@ def show_img(path):
     img = imread(path, pilmode="RGB")
     plt.imshow(img)
     plt.show()
-
-
-#run()
