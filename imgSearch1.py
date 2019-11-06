@@ -72,10 +72,7 @@ class Matcher(object):
 
         for i in range(0,len(v)):
             for j in range(0, len(self.matrix)):
-                distance[i][j] = 0
-                for k in range(0, 2048):
-                    distance[i][j] += (v[i][k] - self.matrix[j][k])**2
-                distance[i][j] = np.sqrt(distance[i][j])
+                distance[i][j] = np.sqrt(np.sum((v[i]-self.matrix[j])**2))
 
         return distance.reshape(-1)
 
