@@ -22,7 +22,7 @@ def MatchUp():
     dataUji = filename
 
     # Path folder data referensi
-    images_path = 'pins-face-recognition/Data Referensi/'
+    images_path = 'test/Data Referensi/'
 
     # Jika belum ada file .pck untuk data referensi, akan diextract terlebih dahulu
     extracted = os.path.isfile('./features_referensi.pck')
