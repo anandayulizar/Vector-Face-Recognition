@@ -3,7 +3,7 @@ from tkinter import *
 import tkinter.messagebox
 import tkinter.font
 import tkinter.filedialog
-from imgSearch1 import *
+from FeaturesExtractor import *
 
 #####################################################################################
 matchtemp = float(0)
@@ -12,36 +12,19 @@ filename = ''
 i = 0
 y = 1
 
-def run():
-    # ini data dari data uji
-    # images_path = 'pins-face-recognition/Data Uji/'
-    # files = [os.path.join(images_path, p) for p in sorted(os.listdir(images_path))]
-    # for i in range(len(files)):
-    #     num = 1+i
-    #     print (num, ".", files[i])
+def MatchUp():
     global filename
     global var
     global NumPhoto
     global matchtemp
     global y
-    # global EFinished
-    # global EQueue
-    # global EMatching
-    # global EMatchRate
-    # global EHasilAkhir
-    # x = input("pilih nomer berapa : ")
-    sample = filename
-    # # misalnya : pins-face-recognition/Data Uji/Jesse Eisenberg0.jpg
 
-    # # kalo misalnya blm ada file .pck untuk data uji
-    # extracted = os.path.isfile('./features_uji.pck')
-    # if not(extracted):
-    #     batch_extractor_uji(images_path)
+    dataUji = filename
 
-    # ini data dari referensi
+    # Path folder data referensi
     images_path = 'pins-face-recognition/Data Referensi/'
 
-    # kalo misalnya blm ada file .pck untuk data referensi
+    # Jika belum ada file .pck untuk data referensi, akan diextract terlebih dahulu
     extracted = os.path.isfile('./features_referensi.pck')
     if not(extracted):
         batch_extractor_referensi(images_path)
@@ -53,20 +36,17 @@ def run():
     print(var.get())
     op = var.get()
     print(NumPhoto.get())
-    names, match = ma.match(sample, y, op)
+    names, match = ma.match(dataUji, y, op)
     print('Result images ========================================')
     match_rate = float(0);
     sum = float(0);
     i = 0;
     for i in range(y):
-        # we got cosine distance, less cosine distance between vectors
-        # more they similar, thus we subtruct it from 1 to get match value
         print('Match %s' % (match[i]))
         sum = sum + match[i]
         match_rate = sum / (i+1)
         print(os.path.join(images_path, names[i]))
         changeDataRef(os.path.join(images_path, names[i]))
-        # show_img(os.path.join(images_path, names[i]))
     EFinished.delete(0,'end')
     EQueue.delete(0,'end')
     EHasilAkhir.delete(0,'end')
@@ -83,12 +63,12 @@ def NextImage():
     global y
     if (y < NumPhoto.get()) :
         y = y+1
-        run()
+        MatchUp()
 
 def start():
     global y
     y = 1
-    run()
+    MatchUp()
 
 
 root = tkinter.Tk()

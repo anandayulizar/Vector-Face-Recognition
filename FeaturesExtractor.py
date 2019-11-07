@@ -38,19 +38,6 @@ def extract_features(image_path, vector_size=32):
 
     return dsc
 
-def batch_extractor_uji(images_path, pickled_db_path="features_uji.pck"):
-    files = [os.path.join(images_path, p) for p in sorted(os.listdir(images_path))]
-
-    result = {}
-    for f in files:
-        print('Extracting features from image %s' % f)
-        name = f.split('/')[-1].lower()
-        result[name] = extract_features(f)
-    
-    # saving all our feature vectors in pickled file
-    with open(pickled_db_path, 'wb') as fp:
-        pickle.dump(result, fp)
-
 def batch_extractor_referensi(images_path, pickled_db_path="features_referensi.pck"):
     files = [os.path.join(images_path, p) for p in sorted(os.listdir(images_path))]
 
@@ -74,17 +61,12 @@ class Matcher(object):
         for k, v in self.data.items():
             self.names.append(k)
             self.matrix.append(v)
-        self.matrix = np.array(self.matrix) # Image database
-        self.names = np.array(self.names)
-
-    def cos_cdist(self, vector):
-        # getting cosine distance between search image and images database
-        v = vector.reshape(1, -1)
-        return scipy.spatial.distance.cdist(self.matrix, v, 'cosine').reshape(-1)
+        self.matrix = np.array(self.matrix) # Features of images from database
+        self.names = np.array(self.names)   # Filenames of images from database
 
     def euclidianDistance(self, vector):
-        # getting euclidean distance between search image and images database
-        v = vector.reshape(1,-1) # Search Image
+        # Getting euclidean distance between search image and images database
+        v = vector.reshape(1,-1) # Features from search image
 
         distance = np.empty([len(v), len(self.matrix)])
 
@@ -95,7 +77,7 @@ class Matcher(object):
         return distance.reshape(-1)
 
     def cosineSimilarity(self, vector):
-        v = vector.reshape(1,-1) # Search Image
+        v = vector.reshape(1,-1) # Features from search image
 
         distance = np.empty([len(v), len(self.matrix)])
         for i in range(0,len(v)):
@@ -118,13 +100,5 @@ class Matcher(object):
             
             nearest_ids = np.argsort(img_distances)[::-1][:topn].tolist()
             nearest_img_paths = self.names[nearest_ids].tolist()
-        else :
-            print("Salah input")
-
 
         return nearest_img_paths, img_distances[nearest_ids].tolist()
-
-def show_img(path):
-    img = imread(path, pilmode="RGB")
-    plt.imshow(img)
-    plt.show()
