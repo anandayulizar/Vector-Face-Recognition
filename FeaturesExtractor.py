@@ -1,12 +1,8 @@
 import cv2
 import numpy as np
-import scipy
-import scipy.spatial
 from imageio import imread
 import pickle
-import random
 import os
-import matplotlib.pyplot as plt
 
 # Feature extractor
 def extract_features(image_path, vector_size=32):
